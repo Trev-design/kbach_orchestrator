@@ -45,7 +45,7 @@ defmodule Core.Application do
     Supervisor.start_link(children, opts)
   end
 
-  defp parse_cache_string(string) do
+  def parse_cache_string(string) do
     clean_string = string |> String.upcase() |> String.replace(" ", "")
 
     case Regex.named_captures(~r/^(?<num>\d+(\.\d+)?)(?<unit>GB|MB|KB|B)?$/, clean_string) do

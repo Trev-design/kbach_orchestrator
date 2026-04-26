@@ -39,29 +39,31 @@ defmodule Core.StateMachine.RocksOwner do
     Process.flag(:trap_exit, true)
 
     opts = [
-      create_if_missing: true,
-      write_buffer_manager: wbm,
-      max_open_files: -1
+      {:create_if_missing, true},
+      {:create_missing_column_families, true},
+      {:write_buffer_manager, wbm},
+      {:max_open_files, -1}
     ]
 
     table_options = [
-      cache_index_and_filter_blocks: true,
-      bloom_filter_policy: 10,
-      block_cache: cache
+      {:cache_index_and_filter_blocks, true},
+      {:bloom_filter_policy, 10},
+      {:block_cache, cache}
     ]
 
     cf_options = [
-      block_based_table_options: table_options,
-      write_buffer_size: div(size, num_partitions * 8),
-      max_write_buffer_number: 2,
-      min_write_buffer_number_to_merge: 1,
-      compression: :lz4,
-      level_compaction_dynamic_level_bytes: true,
-      optimize_filters_for_hits: true,
-      prefix_extractor: {:fixed_prefix_transform, 32}
+      {:block_based_table_options, table_options},
+      {:write_buffer_size, div(size, num_partitions * 8)},
+      {:max_write_buffer_number, 2},
+      {:min_write_buffer_number_to_merge, 1},
+      {:compression, :lz4},
+      {:level_compaction_dynamic_level_bytes, true},
+      {:optimize_filters_for_hits, true},
+      {:prefix_extractor, {:fixed_prefix_transform, 32}}
     ]
 
     cf_descriptors = [
+      {~c"default", cf_options, 0},
       {~c"meta", cf_options, 0},
       {~c"ephemeral", cf_options, 60},
       {~c"transient", cf_options, 60 * 60},
@@ -77,7 +79,7 @@ defmodule Core.StateMachine.RocksOwner do
   end
 
   @impl true
-  def handle_call(:get_handles, _from, state), do: {:reply, state, state}
+  def handle_call(:get_handles, _from, state), do: {:reply, {:ok, state}, state}
 
   @impl true
   def terminate(_reason, state) do
@@ -110,9 +112,9 @@ defmodule Core.StateMachine.RocksOwner do
 
   defp get_name(id) do
     case Mix.env() do
-      :dev  -> "store/dev/kv_store_partition_#{id}"
-      :test -> "store/test/kv_store_partition_#{id}"
-      :prod -> "store/prod/kv_store_partition_#{id}"
+      :dev  -> ~c"store/dev/kv_store_partition_#{id}"
+      :test -> ~c"store/test/kv_store_partition_#{id}"
+      :prod -> ~c"store/prod/kv_store_partition_#{id}"
       _     -> raise "Unknown environment: #{Mix.env()}"
     end
   end
