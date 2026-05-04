@@ -11,8 +11,8 @@ defmodule Core.StateMachine.RaftServer do
   alias Core.StateMachine.RocksOwner
   alias Core.Statemachine.RocksHandler
 
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args)
+  def start_link([id: id, num_nodes: _num_nodes] = args) do
+    GenServer.start_link(__MODULE__, args, name: {:via, Registry, {Core.RaftRegistry, "raft_server_#{id}"}})
   end
 
   @impl true

@@ -18,10 +18,20 @@ defmodule Core.StateMachine.RocksOwner do
   allowing for graceful degradation in case of issues with the database.
   """
   use GenServer
+  require Logger
 
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args)
+  def start_link([
+    cache: _cache,
+    size: _size,
+    id: id,
+    num_partitions: _num_partitions,
+    write_buffer_manager: _wbm
+    ] = args) do
+    Logger.info("Starting RocksOwner with args: #{inspect(args)}")
+    GenServer.start_link(__MODULE__, args, name: get_service_name(id))
   end
+
+  def get_service_name(id), do: {:via, Registry, {Core.RaftRegistry, "store_partition_#{id}"}}
 
   def get_handles(pid) do
     GenServer.call(pid, :get_handles)
@@ -82,9 +92,12 @@ defmodule Core.StateMachine.RocksOwner do
   def handle_call(:get_handles, _from, state), do: {:reply, {:ok, state}, state}
 
   @impl true
-  def terminate(_reason, state) do
+  def terminate(reason, state) do
     :rocksdb.close(state.db_handle)
     :ok
+
+  after
+    Logger.info("Terminating RocksOwner and closing RocksDB instance #{inspect(reason)}")
   end
 
   def terminate(pid), do: GenServer.stop(pid, :normal)

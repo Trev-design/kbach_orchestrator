@@ -2,8 +2,10 @@ defmodule Core.StateMachineStarter do
   alias Core.StateMachine.ShardSupervisor
 
   use GenServer
+  require Logger
 
   def start_link(args) do
+    Logger.info("Starting StateMachineStarter with args: #{inspect(args)}")
     GenServer.start_link(__MODULE__, args)
   end
 

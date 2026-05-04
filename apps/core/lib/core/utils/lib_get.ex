@@ -4,6 +4,7 @@ defmodule Core.Utils.LibGet do
   def get_single_job(db_handle, cf_handle, id) do
     case :rocksdb.get(db_handle, cf_handle, id, single_get_options()) do
       {:ok, value} -> {:ok, value}
+      :not_found -> {:error, "Job not found"}
       {:error, reason} -> {:error, "Failed to get job for ID #{id}: #{reason}"}
     end
   end

@@ -1,7 +1,9 @@
 defmodule Core.StateMachine.ShardSupervisor do
   use Supervisor
+  require Logger
 
   def start_link(args) do
+    Logger.info("Starting ShardSupervisor with args: #{inspect(args)}")
     Supervisor.start_link(__MODULE__, args)
   end
 
@@ -18,6 +20,7 @@ defmodule Core.StateMachine.ShardSupervisor do
       { Core.StateMachine.RocksOwner, [
         cache: cache,
         size: size,
+        id: id,
         num_partitions: num_partitions,
         write_buffer_manager: wbm] },
 

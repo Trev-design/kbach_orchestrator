@@ -4,6 +4,7 @@ defmodule Core.Application do
   @moduledoc false
 
   use Application
+  require Logger
 
   @impl true
   def start(_type, _args) do
@@ -24,9 +25,11 @@ defmodule Core.Application do
       wal_compute_checksums: true,
       wal_max_batch_size: 16384,
       wal_hibernate_after: 2000,
-      data_dir: "/mnt/ra_data",
-      wal_data_dir: "/mnt/ra_wal"})
+      data_dir: "./raft/dev/ra_data",
+      wal_data_dir: "./raft/dev/ra_wal"})
     |> :ra_system.start()
+
+    Logger.info("Starting Core Application with cache size: #{cache_size} bytes, num_partitions: #{num_partitions}, num_nodes: #{num_nodes}")
 
     children = [
       {Registry, keys: :unique, name: Core.RaftRegistry},
